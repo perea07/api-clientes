@@ -20,8 +20,10 @@ public class Cliente implements Serializable{
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
+        @Column(nullable = false)
 	private String name;
 	private String lastName;
+         @Column(nullable = false, unique = true)
 	private String email;
 	@Column(name = "create_at")
 	@Temporal(TemporalType.DATE)

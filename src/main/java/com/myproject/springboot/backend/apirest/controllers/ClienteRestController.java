@@ -15,7 +15,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.myproject.springboot.backend.apirest.models.entity.Cliente;
 import com.myproject.springboot.backend.apirest.models.service.IClienteService;
-import org.springframework.web.bind.annotation.DeleteMapping;
+import jakarta.transaction.Status;
+import java.util.HashMap;
+import java.util.Map;
+import org.springframework.dao.DataAccessException;
+import org.springframework.http.ResponseEntity;
 
 @CrossOrigin(origins = {"http://localhost:4200"}) //urls que puedan acceder a la api
 @RestController
@@ -31,15 +35,48 @@ public class ClienteRestController {
     }
 
     @PostMapping("/clientsById")
-    public Cliente view(@RequestBody Cliente cliente) {
+    public ResponseEntity<?> view(@RequestBody Cliente cliente) {
 
-        return iClienteService.findBy(cliente.getId());
+        Map<String, Object> response = new HashMap<>();
+        Cliente clientResult = null;
+        try {
+            clientResult = iClienteService.findBy(cliente.getId());
+        } catch (DataAccessException d) {
+            response.put("message", "Error al realizar la consulta en base de datos");
+            response.put("code", HttpStatus.NOT_FOUND);
+            response.put("error", d.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        }
+
+        if (clientResult == null) {
+            response.put("message", "El cliente con ID: ".concat(cliente.getId().toString()).concat(" no existe"));
+            response.put("code", HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        }
+
+        return new ResponseEntity<>(clientResult, HttpStatus.OK);
     }
 
     @PostMapping("/save")
     @ResponseStatus(HttpStatus.CREATED)
-    public Cliente save(@RequestBody Cliente cliente) {
-        return iClienteService.save(cliente);
+    public ResponseEntity save(@RequestBody Cliente cliente) {
+        Cliente newCliente = null;
+        Map<String, Object> response = new HashMap<>();
+        try {
+            newCliente = iClienteService.save(cliente);
+        } catch (DataAccessException dataE) {
+            response.put("message", "Error al insertar en base de datos");
+            response.put("code", HttpStatus.INTERNAL_SERVER_ERROR);
+            response.put("error", dataE.getMessage());
+
+        }
+
+        //TODO validar que el objecto no venga vacio para responder con el mensaje de éxito
+        
+        response.put("message", "El Cliente se ha creado con éxito");
+        response.put("cliente", newCliente);
+
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @PutMapping("/update")
