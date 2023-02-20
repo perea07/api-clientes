@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.myproject.springboot.backend.apirest.models.entity.Cliente;
 import com.myproject.springboot.backend.apirest.models.service.IClienteService;
-import jakarta.transaction.Status;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.dao.DataAccessException;
@@ -59,24 +58,19 @@ public class ClienteRestController {
 
     @PostMapping("/save")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity save(@RequestBody Cliente cliente) {
+    public Map<String, Object> save(@RequestBody Cliente cliente) {
         Cliente newCliente = null;
         Map<String, Object> response = new HashMap<>();
         try {
             newCliente = iClienteService.save(cliente);
+            response.put("message", "El Cliente se ha creado con éxito");
+            response.put("code", HttpStatus.CREATED);
         } catch (DataAccessException dataE) {
             response.put("message", "Error al insertar en base de datos");
             response.put("code", HttpStatus.INTERNAL_SERVER_ERROR);
-            response.put("error", dataE.getMessage());
-
         }
 
-        //TODO validar que el objecto no venga vacio para responder con el mensaje de éxito
-        
-        response.put("message", "El Cliente se ha creado con éxito");
-        response.put("cliente", newCliente);
-
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+        return response;
     }
 
     @PutMapping("/update")
