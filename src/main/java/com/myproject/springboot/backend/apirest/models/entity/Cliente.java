@@ -22,8 +22,9 @@ public class Cliente implements Serializable{
 	private Long id;
         @Column(nullable = false)
 	private String name;
+        @Column(nullable = false)
 	private String lastName;
-         @Column(nullable = false, unique = true)
+        @Column(nullable = false, unique = true)
 	private String email;
 	@Column(name = "create_at")
 	@Temporal(TemporalType.DATE)
